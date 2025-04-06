@@ -1,6 +1,112 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 
+;// ./src/js/downloadManager.js
+class DownloadManager {
+  constructor(parentEl) {
+    this.parentEl = parentEl;
+  }
+  static get markup() {
+    return `
+    <div class="dwnload-container">
+    <h2>Available Files(without sms and registration)</h2>
+    <div class="download-files">
+      <div class="file">
+        <div class="name">Storage Standard</div>
+        <div class="size" data-size="303">303 Kb</div>
+        <div class="btn"><a href="../../files/Storage Standard.pdf" download class="download-btn">Download</a></div>
+      </div>
+      <div class="file">
+        <div class="name">Streams Standard</div>
+        <div class="size" data-size="1670">1.6 Mb</div>
+        <div class="btn"><a href="../../files/Streams Standard.pdf" download class="download-btn">Download</a></div>
+      </div>
+      <div class="file">
+        <div class="name">XMLHttpRequest Standard</div>
+        <div class="size" data-size="813">813 Kb</div>
+        <div class="btn"><a href="../../files/XMLHttpRequest Standard.pdf" download class="download-btn">Download</a></div>
+      </div>
+    </div>
+  </div>
+  <div class="download-all">You've already downloaded: <span data-download="0" class="download-count">0</span> Mb</div>
+    `;
+  }
+  static get downloadCountSelector() {
+    return `.download-count`;
+  }
+  static get downloadBtnSelector() {
+    return `.download-btn`;
+  }
+  bindToDOM() {
+    this.parentEl.innerHTML = this.constructor.markup;
+    const downloadCount = document.querySelector(this.constructor.downloadCountSelector);
+    const allBtnsDownload = Array.from(document.querySelectorAll(this.constructor.downloadBtnSelector));
+    allBtnsDownload.forEach(btn => {
+      btn.addEventListener("click", e => {
+        const size = Number(e.target.closest(".file").querySelector(".size").dataset.size);
+        downloadCount.dataset.download = Number(downloadCount.dataset.download) + size;
+        downloadCount.innerText = (Number(downloadCount.dataset.download) / 1024).toFixed(0);
+      });
+    });
+  }
+}
+;// ./src/js/modernImageManager.js
+class ModernImageManager {
+  constructor(parentEl) {
+    this.parentEl = parentEl;
+  }
+  static get markup() {
+    return `
+    <div class="modern-image-container">
+      <input type="file" id="imageInput" accept="image/*" class="input-main" />
+      <div class="input-placeholder">Drag And Drop File Here Or Click</div>
+    </div>
+    <div class="images-con"></div>
+    `;
+  }
+  static get dropInputSelector() {
+    return `.input-main`;
+  }
+  static get dropInputPlaceholderSelector() {
+    return `.input-placeholder`;
+  }
+  bindToDOM() {
+    this.parentEl.innerHTML = this.constructor.markup;
+    const input = document.querySelector(this.constructor.dropInputSelector);
+    input.addEventListener("mouseenter", e => this.onMouseEnter(e));
+    input.addEventListener("mouseleave", e => this.onMouseLeave(e));
+    input.addEventListener("change", e => this.onChange(e));
+    document.addEventListener("click", e => this.onClick(e));
+  }
+  onClick(e) {
+    if (e.target.classList.contains("remove")) {
+      e.target.closest(".image-drag").remove();
+    }
+  }
+  onChange(e) {
+    const file = e.target.files[0];
+    const newElement = document.createElement("div");
+    newElement.classList.add("image-drag");
+    const newElementImg = document.createElement("img");
+    newElementImg.classList.add("image-added");
+    newElementImg.src = URL.createObjectURL(file);
+    newElement.addEventListener("load", () => {
+      URL.revokeObjectURL(newElementImg.src);
+    });
+    const newElementRemove = document.createElement("div");
+    newElementRemove.classList.add("remove");
+    newElementRemove.innerText = "X";
+    newElement.append(newElementImg, newElementRemove);
+    document.querySelector(".images-con").appendChild(newElement);
+    e.target.value = "";
+  }
+  onMouseEnter(e) {
+    e.target.nextElementSibling.style.backgroundColor = "gray";
+  }
+  onMouseLeave(e) {
+    e.target.nextElementSibling.style.backgroundColor = "white";
+  }
+}
 ;// ./src/js/trello.js
 class Trello {
   constructor(parentEl) {
@@ -245,9 +351,17 @@ class Trello {
 }
 ;// ./src/js/app.js
 
+
+
 const container = document.querySelector(".container");
+const modernCon = document.querySelector(".modern-image");
+const downloadCon = document.querySelector(".download-manager");
 const trello = new Trello(container);
+const imageManager = new ModernImageManager(modernCon);
+const downloadManager = new DownloadManager(downloadCon);
 trello.bindToDOM();
+imageManager.bindToDOM();
+downloadManager.bindToDOM();
 ;// ./src/index.js
 
 
